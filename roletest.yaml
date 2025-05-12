@@ -1,0 +1,7 @@
+- name: testrole
+  hosts: all
+  become: true
+  vars_files:
+    - vault.yaml
+  roles:
+    - Swapnilbole1986.roletest

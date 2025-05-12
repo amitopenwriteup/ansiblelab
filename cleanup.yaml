@@ -1,0 +1,18 @@
+---
+- name: Clean up contents of a directory
+  hosts: all
+  become: true
+  vars_files:
+      - vault.yaml
+  vars:
+    target_dir: /tmp/
+  tasks:
+    - name: Find all files and directories under the target directory
+      find:
+        paths: "{{ target_dir }}"
+        file_type: any
+        recurse: yes
+      register: found_items
+    - name: Remove all found files and directories
+      debug:
+        var: found_items

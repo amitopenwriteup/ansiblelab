@@ -1,5 +1,7 @@
 - name: play1
   hosts: localhost
+  vars_files:
+    - vault.yaml
   tasks:
     - name: testing ping
       ansible.builtin.ping: 
