@@ -32,7 +32,14 @@
         name: mariadb
         state: started
         enabled: true
-
+    - name: Create .m.cnf
+      copy: 
+        dest: /root/.my.cnf
+        content: |
+          [client]
+          user=root
+          password={{ mysql_root_password }}
+          socket=/var/lib/mysql/mysql.sock  
     - name: Set MySQL root password
       mysql_user:
         name: root
