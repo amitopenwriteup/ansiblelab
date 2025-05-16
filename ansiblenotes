@@ -1,0 +1,1646 @@
+ Version 2779 Saved May 9, 2025
+Authors: 15 unnamed authors (                             )
+Return to pad
+05/09/2025 17:13:42
+05/05/25
+ 
+#Setup ansible controller
+ 
+yum install ansible
+ 
+#Why controller will not work on windows
+ 
+https://blog.rolpdog.com/2020/03/why-no-ansible-controller-for-windows.html
+ 
+document and lab link: https://github.com/amitopenwriteup/ansible-proj
+ 
+Lab2:
+ 
+ 
+ 
+#To write code create a working dir]
+ 
+mkdir ansiblecode
+cd ansiblecode
+ 
+ccc
+ip addr|grep ens
+ 
+vi inventory.ini
+ 
+[local]
+10.0.16.56 ansible_connection=ssh ansible_user=student
+ 
+#save the file
+#Run this command, it will fail for remote host
+ 
+ansible -i inventory.ini all -m ping
+ 
+#FRom the controller node configure ssh
+ 
+ssh-keygen -t rsa
+ 
+#It will prompt for path and passphrase: Do not change anything
+ 
+#In below example 10.0.16.56 is my manage node ip
+ 
+ssh-copy-id student@10.0.16.59
+ 
+#It will promopt for password. password: student
+ 
+#Test below command you will be able to login with out password
+ 
+ssh student@10.0.16.83
+     exit
+     
+    # run below command
+    ansible -i inventory.ini all -m ping\
+ 
+Lab 3:
+ 
+#update the ansible.cfg
+ 
+#Check the inventory file current location
+pwd
+ 
+# 
+vi /etc/ansible/ansible.cfg
+ 
+[defaults]
+inventory = /root/ansiblecode/inventory.ini 
+ 
+#test
+ansible  all -m ping
+ 
+Lab 4
+#Create inventory file in yaml format [vi inventory.yaml]
+ 
+webservers:
+  hosts:
+    host1:
+      ansible_host: localhost
+      ansible_connection: local
+    host2:
+      ansible_host: 10.0.16.16
+      ansible_connection: ssh
+      ansible_user: student
+ 
+# test this command
+ansible -i inventory.yaml all -m ping
+      ----------------------------------
+      06/05
+      https://www.openwriteup.com/?page_id=1075 
+                     
+Lab
+http:s://www.openwriteup.com/?page_id=1081
+ 
+Branch lab
+https://www.openwriteup.com/?page_id=1325
+ 
+---------------------------------------
+#Create  a yaml file using vi editor (lab.yaml)
+ 
+- name: play1
+  hosts: localhost
+  tasks:
+    - name: testing ping
+      ping:
+    - name: printmsg
+      ansible.builtin.debug:
+        msg: "Hello"
+- name: play2
+  hosts: all
+  tasks:
+    - name: msging
+      ansible.builtin.debug:
+        msg: "Trying all"
+        
+#Run the command  
+ansible-playbook  -i inventory.ini lab.yaml
+ 
+#Doc link https://docs.ansible.com/ansible/latest/collections/ansible/builtin/debug_module.html#examples
+ 
+# Go to manage node
+ 
+login as root
+ 
+su root
+ 
+#It will prompt for password
+ 
+root123
+ 
+#vi /etc/sudoers
+ 
+student ALL=(ALL)       ALL
+ 
+---------------------
+create a new  inventory file in control node [inventory2.ini]: change the ip
+[local]
+localhost ansible_connection=local
+[remote]
+10.0.16.2 ansible_connection=ssh ansible_user=student  ansible_become_user=root ansible_become_password=student
+ 
+Create a yaml file: lab2.yaml
+ 
+- name: install package
+  hosts: remote
+  become: true
+  tasks:
+- name: dnfinstaller
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+    
+ 
+ansible-playbook -i inventory.ini lab2.yaml
+ 
+# take as basic assignment
+ 
+#Creating html
+touch index.html
+ 
+ 
+- name: Copy file with owner and permissions
+ansible.builtin.copy:
+    src: index.html
+    dest: /root/foo.conf
+    owner: root
+    group: root
+    mode: '0644'
+ 
+------------
+ 
+07/05
+ 
+rm index.html
+ 
+Create a file lab4.yaml
+ 
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Install httpd
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+    - name: Try to copy index.html if it exists
+      ansible.builtin.copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+      register: copy_result
+      ignore_errors: yes
+      failed_when: false
+      notify: Prompt user to place index.html
+  handlers:
+    - name: Prompt user to place index.html
+      ansible.builtin.debug:
+        msg: "index.html is missing. Please place it in the correct path on the Ansible controller."
+      when: copy_result is failed
+ 
+ansible-playbook -i inventory.ini lab4.yaml
+ 
+---------------------------
+Lab2:
+    
+https://github.com/amitopenwriteup/ansible-proj/blob/main/ansible%20vault.txt
+ 
+-----------------------------
+ 
+Lab3:
+fileexist.yaml
+---
+- hosts: all
+  become: true
+  vars_files:
+    - /home/student/vault.yaml
+  tasks:
+    - name: check file existt
+      ansible.builtin.stat:
+        path: index.html
+    register: index_stat
+    - name: Install httpd
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+    - name: Try to copy index.html if it exists
+      ansible.builtin.copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+      when: index_stat.stat.exists 
+ 
+ ansible-playbook  -i inventory.ini fileexist.yaml --ask-vault-pass 
+https://docs.ansible.com/ansible/latest/collections/ansible/builtin/stat_module.html
+ 
+---------------
+var_prompts
+ 
+---
+# varprompt.yaml
+ 
+- hosts: all
+  become: true
+  vars_files:
+      - vault.yml
+  vars_prompt:
+    - name: index_file_path
+      prompt: "Enter the full path to your local index.html file"
+      private: no
+  tasks:
+    - name: Check if the provided file exists on controller
+      delegate_to: localhost
+      ansible.builtin.stat:
+        path: "{{ index_file_path }}"
+      register: file_check
+ 
+    - name: Copy index.html to remote server
+      ansible.builtin.copy:
+        src: "{{ index_file_path }}"
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+      when: file_check.stat.exists
+      notify: File copied
+ 
+    - name: Notify user if the file doesn't exist
+      ansible.builtin.debug:
+        msg: "The provided file path does not exist. Please check and re-run the playbook."
+  handlers:
+    - name: File copied
+      ansible.builtin.debug:
+        msg: "index.html was successfully copied."
+ 
+ansible-playbook -i inventory.ini  varprompt.yaml --ask-vault-pass
+ 
+------------------
+Gaterhing info using facts
+ 
+ansible all -m setup 
+ 
+#gatherfact.yaml
+ 
+- name: Show system info
+  hosts: all
+  vars_files:
+      - vault.yml
+  tasks:
+    - name: Print OS Family
+      debug:
+        msg: "OS Family is {{ ansible_os_family }}"
+    - name: Print Hostname
+      debug:
+        msg: "Hostname is {{ ansible_hostname }}"
+        
+        ansible-playbook -i inventory.ini gatherfact.yaml --ask-vault-pass
+ 
+-------------------
+ 
+Writea playbook where based os family we will install pacakge
+ 
+--
+- name: Install Apache based on OS family
+  hosts: all
+  become: true
+  vars_files:
+      - vault.yml
+ 
+  tasks:
+    - name: Install Apache on Debian/Ubuntu
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+ 
+    - name: Install Apache on RedHat/CentOS
+      yum:
+        name: httpd
+        state: present
+      when: ansible_os_family == "RedHat"
+ 
+    - name: Ensure Apache service is started and enabled on Debian
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+      when: ansible_os_family == "Debian"
+ 
+    - name: Ensure Apache service is started and enabled on RedHat
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+      when: ansible_os_family == "RedHat"
+-------------------------------
+08/05
+#Create a yaml file cleanup.yaml
+---
+- name: Clean up contents of a directory
+  hosts: all
+  become: true
+  vars_files:
+      - vault.yml
+  vars:
+    target_dir: /tmp/
+  tasks:
+    - name: Find all files and directories under the target directory
+      find:
+        paths: "{{ target_dir }}"
+        file_type: any
+        recurse: yes
+      register: found_items
+    - name: Remove all found files and directories
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ found_items.files }}"
+ 
+#Run the playbook
+ 
+ansible-playbook  -i inventory.ini cleanup.yaml --ask-vault-pass
+ 
+ 
+Lab2:
+    https://github.com/amitopenwriteup/trainingansible/blob/main/lab%20copyfiles.docx
+    
+    
+    1. Create Lab Files in Current Directory
+In your working directory, run:
+ 
+touch file1.txt file2.txt file3.conf
+ 
+Add content (optional):
+ 
+echo "File 1 content" > file1.txt
+echo "File 2 content" > file2.txt
+echo "Config=123" > file3.conf
+ 
+2. Create Inventory File
+ 
+File: inventory
+[all]
+localhost ansible_connection=local
+ 
+3. Create the Playbook
+File: copy-files.yaml
+---
+- name: Copy multiple files to target host
+  hosts: all
+  become: true
+  vars:
+    files_to_copy:
+      - file1.txt
+      - file2.txt
+      - file3.conf
+    destination_dir: /tmp/
+  tasks:
+    - name: Ensure destination directory exists
+      file:
+        path: "{{ destination_dir }}"
+        state: directory
+        mode: '0755'
+    - name: Copy each file
+      copy:
+        src: "{{ item }}"
+        dest: "{{ destination_dir }}/{{ item }}"
+      loop: "{{ files_to_copy }}"
+ 
+4. Run the Playbook
+ 
+ansible-playbook -i inventory.ini copy-files.yaml --ask-vault-pass
+ 
+5. Verify on Target
+ 
+ls -l /tmp/file*
+cat /tmp/file1.txt
+---------------------
+ 
+ Lab 3:
+---
+- name: Ensure SELinux is set to enforcing mode
+  hosts: remote
+  become: true
+  vars_files:
+    - vault.yaml
+  gather_facts: false
+  tasks:
+    - name: Ensure SELinux is set to enforcing mode
+      ansible.builtin.lineinfile:
+          
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: SELINUX=permissive
+        
+Lab:
+inventory
+[local]
+localhost ansible_connection=local
+ 
+multi-line-playbook.yml
+---
+- name: Ensure multiple lines exist in a file
+  hosts: all
+  become: true
+  gather_facts: false
+  vars:
+    config_lines:
+      - "SETTING_1=value1"
+      - "SETTING_2=value2"
+      - "SETTING_3=value3"
+ 
+  tasks:
+    - name: Ensure each config line is present
+      ansible.builtin.lineinfile:
+        path: /etc/example.conf
+        line: "{{ item }}"
+        state: present
+        create: yes
+      loop: "{{ config_lines }}"
+ 
+To Run the Lab:
+ansible-playbook -i inventory multi-line-playbook.yml
+For safe testing, change /etc/example.conf to /tmp/example.conf:
+path: /tmp/example.conf
+         
+ 
+ LAb
+ Lab: Clone Private Git Repository Using Ansible
+1. Fork the Repository
+ 
+Go     to the original repo URL:
+     https://github.com/amitopenwriteup/linuxtraining
+ 
+Click     on Fork (top-right corner of GitHub page). 
+After     forking, you will get your own copy at:
+     git@github.com:rupeshsingh781/Ansibletraining.git
+ 
+ 
+Copy Private Key
+ 
+mkdir ssh
+cp ~/.ssh/id_rsa ssh/id_rsa
+chmod 600 ssh/id_rsa
+ 
+7. File: clone_git_repo.yaml
+---
+- name: Create directory and clone Git repo
+  hosts: all
+  become: true
+  vars:
+    repo_url: "git@github.com:rupeshsingh781/Ansibletraining.git"
+    repo_dest: "/opt/myrepo"
+  tasks::
+    - name: Ensure git is installed
+      dnf:
+        name: git
+        state: present
+    - name: Ensure repo directory exists
+      file:
+        path: "{{ repo_dest }}"
+        state: directory
+        owner: "{{ ansible_user | default('student') }}"
+        mode: '0755'
+    - name: Copy SSH key to target
+      copy:
+        src: ssh/id_rsa
+        dest: /tmp/id_rsa
+        mode: '0600'
+    - name: Clone repo using SSH key
+      environment:
+        GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no -i /tmp/id_rsa"
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ repo_dest }}"
+        version: main
+        force: yes
+Replace <your-username> in repo_url with your actual GitHub username.
+ 
+ 
+ GIT_SSH_COMMAND="ssh -i /tmp/id_rsa" git clone  
+ 
+8. Run the Playbook
+ansible-playbook -i inventory.ini clone_git_repo.yaml --ask-vault-pass
+9. Validate
+ls /opt/myrepo
+ 
+---------------------------
+ 
+09/05
+1. Create Files in Your Working Directory
+touch task1.txt task2.txt task3.txt
+Add content:
+echo "Task 1 file" > task1.txt
+echo "Task 2 file" > task2.txt
+echo "Task 3 file" > task3.txt
+---
+- name: Demo Run only one task using tags
+  hosts: all
+  become: false
+  vars_files:
+      - vault.yaml
+  gather_facts: false
+  tasks:
+    - name: Task 1 - copy task1.txt
+      copy:
+        src: task1.txt
+        dest: /tmp/task1.txt
+      tags: task1
+    - name: Task 2 - copy task2.txt
+      copy:
+        src: task2.txt
+        dest: /tmp/task2.txt
+      tags: task2
+    - name: Task 3 - copy task3.txt
+      copy:
+        src: task3.txt
+        dest: /tmp/task3.txt
+      tags: task3
+ 
+4. Run Only One Task (e.g., Task 2)
+ansible-playbook -i inventory.ini  run-one-task.yaml --tags task2 --ask-vault-pass
+Only task2.txt will be copied to /tmp/.
+ 
+5. Verify
+ls -l /tmp/task*
+Only /tmp/task2.txt should exist.
+ 
+Lab2:
+    
+    - name: Install node_exporter based on architecture
+  hosts: remotes
+  vars_files:
+    - vault.yaml
+  gather_facts: yes
+  become: yes
+  vars:
+    node_exporter_version: "1.9.1"
+  tasks:
+    - name: map the arch
+      set_fact:
+        arch_map: >-
+          {{ {
+            'x86_64': 'amd64',
+            'aarch64': 'arm64'
+          }[ansible_architecture] | default(ansible_architecture) }}
+    - name: Set download URL for node_exporter
+      set_fact:
+        download_url: >-
+          https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ arch_map }}.tar.gz
+    - name: Show which URL is being used
+      debug:
+        var: download_url
+    - name: Create download directory
+      file:
+        path: /opt/node_exporter
+        state: directory
+        mode: '0755'
+    - name: Download node_exporter
+      get_url:
+        url: "{{ download_url }}"
+        dest: /opt/node_exporter/node_exporter.tar.gz
+        mode: '0644'
+    - name: Extract node_exporter
+      unarchive:
+        src: /opt/node_exporter/node_exporter.tar.gz
+        dest: /opt/node_exporter
+        remote_src: yes
+    - name: Move binary to /usr/local/bin
+      command: mv /opt/node_exporter/node_exporter-{{ node_exporter_version }}.linux-{{ arch_map}}/node_exporter /usr/local/bin/
+      args:
+        creates: /usr/local/bin/node_exporter
+    - name: Make node_exporter executable
+      file:
+        path: /usr/local/bin/node_exporter
+        mode: '0755'
+        state: file
+      register: exporter
+    - name: Display installed 
+      debug:
+        msg: installed!!
+ 
+Lab4:
+    
+    - name: Install node_exporter based on architecture
+  hosts: remotes
+  vars_files:
+    - vault.yaml
+  gather_facts: yes
+  become: yes
+  vars:
+    node_exporter_version: "1.9.1"
+  tasks:
+    - name: map the arch
+      set_fact:
+        arch_map: >-
+          {{ {
+            'x86_64': 'amd64',
+            'aarch64': 'arm64'
+          }[ansible_architecture] | default(ansible_architecture) }}
+    - name: Set download URL for node_exporter
+      set_fact:
+        download_url: >-
+          https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ arch_map }}.tar.gz
+    - name: Show which URL is being used
+      debug:
+        var: download_url
+    - name: Create download directory
+      file:
+        path: /opt/node_exporter
+        state: directory
+        mode: '0755'
+    - name: Download node_exporter
+      get_url:
+        url: "{{ download_url }}"
+        dest: /opt/node_exporter/node_exporter.tar.gz
+        mode: '0644'
+    - name: Extract node_exporter
+      unarchive:
+        src: /opt/node_exporter/node_exporter.tar.gz
+        dest: /opt/node_exporter
+        remote_src: yes
+    - name: Move binary to /usr/local/bin
+      command: mv /opt/node_exporter/node_exporter-{{ node_exporter_version }}.linux-{{ arch_map}}/node_exporter /usr/local/bin/
+      args:
+        creates: /usr/local/bin/node_exporter
+    - name: Make node_exporter executable
+      file:
+        path: /usr/local/bin/node_exporter
+        mode: '0755'
+        state: file
+      register: exporter
+    - name: Display installed 
+      debug:
+        msg: installed!!
+   - name: Verify node_exporter installation
+      command: /usr/local/bin/node_exporter --version
+      register: version_check
+      changed_when: false
+      failed_when: version_check.rc != 0
+    - name: Display node_exporter version
+      debug:
+        msg: "Node Exporter installed successfully: {{ version_check.stdout }}"
+ 
+---------------------
+ 
+lab4:
+ 
+1) Run below command
+ 
+ ansible-galaxy role init test
+ 
+2) go to lab3.yaml, copy the section, to test/tasks/main.yaml
+ 
+---
+- name: Install apache httpd
+  ansible.builtin.dnf:
+    name: httpd
+    state: present
+    update_cache: yes
+- name: Copy file with owner and permissions
+  ansible.builtin.copy:
+    src: files/index.html
+    dest: /var/www/html
+    owner: root
+    group: root
+3) create a index.html file under test/files/
+ 
+touch test/files/index.html
+ 
+4) create a playbook lab4.yaml, outside of test folder
+ 
+---
+- hosts: all
+  become: true
+  vars_files:
+      - vault
+  roles:
+   - test
+5) Run the command
+ansible-playbook -i inventory.ini lab4.yaml
+   
+ git remote add origin git@github.com:amitopenwriteup/ansibleroletest.git
+git branch -M main
+git push -u origin main
+ 
+ 
+4) ansible-galaxy import <GitHub user name> <repo name on github> --token <token id>
+example
+
+ansible-galaxy import amitopenwriteup ansibleroletest --token 357e08a8a97e93064499ab76d5e528751aa50feb
+
+ansible-galaxy import kvsanthi2016 myfirstrole --token 3d796017c3ce868247c401de86aa9e79a617976c
+
+
+---------------------
+
+
+Step 1: Create Inventory File
+Create a file named inventory.ini with the target host details.
+inventory.ini
+[centos]
+centos-node ansible_host=192.168.1.100 ansible_user=centos
+Replace 192.168.1.100 with the IP of your CentOS machine.
+
+Step 2: Create the Ansible Playbook
+Create a file named install_docker.yml.
+install_docker.yml
+
+---
+- name: Install Doker on CentOS using Ansible
+  hosts:  all
+  become: true
+  vars_files:
+    - vault.yml
+  tasks:
+    - name: Install dnf-plugins-core
+      dnf:
+        name: dnf-plugins-core
+        state: present
+ 
+    - name: Add Docker CE repository
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/       
+ 
+    - name: Install Docker packages
+      dnf:
+
+        name:
+
+
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+ 
+    - name: Enable and start Docker serpvice
+      systemd:
+        name: docker
+        enabled: true
+        state: started
+
+
+Step 3: Run the Playbook
+Run the following command from your Ansible control node:
+
+ansible-playbook -i inventory.ini install_docker.yml
+
+
+Step 4: Verify Docker Installation
+SSH into the target node and run:
+
+docker --version
+ :
+ 
+ 
+https://github.com/amitopenwriteup/ansiblelab/blob/main/packagetest.yaml
+
+https://github.com/amitopenwriteup/ansibleroletest/blob/main/install_docker.yml
+ 
+ 
+ https://github.com/amitopenwriteup/ansiblelab/blob/main/osfamilydocker.yaml
+
+ 
+   tasks:
+    - name: Check Docker is installed
+      command: docker --version
+      register: docker_version
+      ignore_errors: yes
+    - name: Print Docker version
+      debug:
+        var: docker_version.stdout
+    - name: Get list of running Docker containers
+      command: >
+        docker ps --format "{{ '{{.Names}}\t{{.Status}}\t{{.Image}}' }}"
+      register: docker_ps_output
+      changed_when: false
+    - name: Display container status
+ 
+-----------------------------------------------
+1)https://github.com/amitopenwriteup/ansiblelab/blob/main/osfamilydocker.yaml
+2) https://github.com/amitopenwriteup/ansiblelab/blob/main/displayhealth.yaml
+
+3) Merge first two playbook and create final and run it
+
+
+
+
+----------------------------------------------------------------------
+
+vars
+handlers
+task
+meta
+default
+
+ansible-galaxy role init displayheath
+
+ displayhealth
+ tasks
+ vars
+ default
+ meta
+files
+handlers
+
+tasks-->
+  main.yaml--include
+  -docker-install.yaml-  url, install
+-docker_heath.yaml docker version,docker ps
+
+     vars:
+           main.yaml
+             
+      defualts:
+           main.yaml
+      handler:
+           main.yaml
+           
+    meta:
+          author
+        descr
+         
+           
+
+ansible-galaxy role init displayhealth
+cd displayhealth
+
+tasks/main.yml
+ 
+
+- name: Include task to install Docker
+  include_tasks: docker_install.yml
+- name: Include task to get Docker status and container details
+  include_tasks: get_docker_status.yml
+                                                                                                
+ 
+tasks/docker_install.yml
+
+- name: Install prerequisites on RedHat
+  dnf:
+    name: dnf-plugins-core
+    state: present
+  when: ansible_os_family == "RedHat"
+- name: Add Docker CE repo on RedHat
+  get_url:
+    url: "{{ docker_repo_url_redhat }}"
+    dest: /etc/yum.repos.d/docker-ce.repo
+  when: ansible_os_family == "RedHat"
+  notify: Restart Docker
+- name: Install Docker packages on RedHat
+  dnf:
+    name: "{{ docker_packages_redhat }}"
+    state: present
+  when: ansible_os_family == "RedHat"
+  notify: Restart Docker
+- name: Install prerequisites on Debian
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+  when: ansible_os_family == "Debian"
+- name: Add Docker GPG key on Debian
+  apt_key:
+    url: "{{ docker_repo_key_url_debian }}"
+    state: present
+  when: ansible_os_family == "Debian"
+ 
+- name: Add Docker repository on Debian
+  apt_repository:
+    repo: "deb [arch=amd64] {{ docker_repo_url_debian }} {{ ansible_lsb.codename }} stable"
+    state: present
+  when: ansible_os_family == "Debian"
+  notify: Restart Docker
+- name: Install Docker packages on Debian
+  apt:
+    name: "{{ docker_packages_debian }}"
+    state: present
+  when: ansible_os_family == "Debian"
+  notify: Restart Docker
+- name: Enable and start Docker service
+  systemd:
+    name: docker
+    enabled: true
+    state: started
+
+ 
+ 
+ 
+tasks/get_docker_status.yml
+
+- name: Check Docker is installed
+  command: docker --version
+  register: docker_version
+  ignore_errors: yes
+- name: Print Docker version
+  debug:
+    var: docker_version.stdout
+- name: Get list of running Docker containers
+  command: >
+    docker ps --format "{{ '{{.Names}}\t{{.Status}}\t{{.Image}}' }}"
+  register: docker_ps_output
+  changed_when: false
+- name: Display container status
+  debug:
+    var: docker_ps_output.stdout_lines
+
+ 
+ 
+vars/main.yml
+
+  docker_repo_url_redhat: https://download.docker.com/linux/centos/docker-ce.repo
+  docker_repo_url_debian: https://download.docker.com/linux/ubuntu
+  docker_repo_key_url_debian: https://download.docker.com/linux/ubuntu/gpg
+
+                                                                                                                                        
+defaults/main.yml
+ 
+
+docker_packages_redhat:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+docker_packages_debian:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+ 
+handlers/main.yml
+
+- name: Restart Docker
+  systemd:
+    name: docker
+    state: restarted
+
+ 
+meta/main.yml
+ 
+
+galaxy_info:
+  author: Amit
+  description: Ansible role to install Docker and display container status.
+  company: OW
+  license: MIT
+  min_ansible_version: 2.9
+dependencies: []
+
+ 
+Assignment
+Publish the role
+Git add,commit ,push and add role to galaxy
+ 
+Create a playbook to test role
+     
+https://github.com/amitopenwriteup/ansiblelab/blob/main/Dockerrole.pdf
+ 
+
+14/05
+
+https://github.com/amitopenwriteup/ansiblelab/blob/main/db_create.yml
+
+
+
+error:
+fatal: [10.0.16.77]: FAILED! => {"changed": false, "msg": "unable to connect to database, check login_user and login_password are correct or /root/.my.cnf has the credentials. Exception message: (1045, \"Access denied for user 'root'@'localhost' (using password: NO)\")"}
+
+
+MySQL server installs with default login_user of root and no password. To secure this user as part of an idempotent playbook, you must create at least two tasks: 1) change the root user's password, without providing any login_user/login_password details, 2) drop a ~/.my.cnf file containing the new root credentials. Subsequent runs of the playbook will then succeed by reading the new credentials from the file.
+
+https://galaxy.ansible.com/ui/repo/published/community/mysql/content/module/mysql_user/?extIdCarryOver=true&sc_cid=701f2000001OH7YAAW
+ 
+ /root/.my.cnf
+[client]
+user=root
+password=RootPass123!
+host=127.0.0.1
+socket=/var/lib/mysql/mysql.sock
+ 
+
+- name: Simulate RDS MySQL setup on CentOS
+  hosts: remotes
+  vars_files:
+    - vault.yaml
+  become: yes
+  vars:
+    mysql_root_password: "RootPass123!"
+    db_name: "testdb"
+    db_user: "dbuser"
+    db_user_password: "UserPass123!"
+  tasks:
+
+    - name: Ensure Python 3 and pip are installed
+      yum:
+        name:
+          - python3
+          - python3-pip
+        state: present
+
+    - name: Install PyMySQL module for Python 3
+      pip:
+        name: PyMySQL
+        executable: pip3
+
+    - name: Install MariaDB server
+      yum:
+        name: mariadb-server
+        state: present
+
+    - name: Start and enable MariaDB service
+      service:
+        name: mariadb
+        state: started
+        enabled: true
+    - name: Create .m.cnf
+      copy: 
+        dest: /root/.my.cnf
+        content: |
+          [client]
+          user=root
+          password={{ mysql_root_password }}
+          socket=/var/lib/mysql/mysql.sock  
+    - name: Set MySQL root password
+      mysql_user:
+        name: root
+        host_all: yes
+        password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/lib/mysql/mysql.sock
+      ignore_errors: true
+
+    - name: Create a MySQL database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+    - name: Create a MySQL user with privileges
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_user_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        host: "%"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+
+ ansible-galaxy role install bsmeding.docker
+ 
+ --------------
+
+15/05
+
+Install it first (on your control node):
+
+ansible-galaxy collection install community.docker
+
+Also make sure Python Docker SDK is installed on the managed node:
+
+Ansible Playbook Using community.docker
+- name: Deploy PostgreSQL using Docker collection
+  hosts: all
+  become: true
+  tasks:
+ 
+    - name: Create a Docker volume for PostgreSQL data
+      community.docker.docker_volume:
+        name: pgdata
+ 
+    - name: Pull the official PostgreSQL image
+      community.docker.docker_image:
+        name: postgres
+        source: pull
+ 
+    - name: Run PostgreSQL container
+      community.docker.docker_container:
+        name: postgres
+        image: postgres
+        state: started
+        restart_policy: always
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_PASSWORD: mysecretpassword
+          POSTGRES_USER: myuser
+          POSTGRES_DB: mydb
+        volumes:
+          - pgdata:/var/lib/postgresql/data
+ 
+ 
+ -------------
+Assigment--->
+
+https://docs.ansible.com/ansible/latest/collections/community/postgresql/index.html
+
+Error connecting: Error while fetching server API version: Not supported URL scheme http+docker
+
+
+
+
+
+
+
+apt install python3.12-venv
+
+#Create a directory
+mdkir awscode
+cd awscode
+python3 -m venv .venv
+. .venv/bin/activate        
+
+postgre
+
+ansible-galaxy collection install community.postgresql
+
+- name: Simulate PostgreSQL setup on CentOS
+  hosts: all
+  vars_files:
+      - vault.yaml
+  become: yes
+  vars:
+    postgres_root_password: "RootPass123!"
+    db_name: "testdb"
+    db_user: "dbuser"
+    db_user_password: "UserPass123!"
+  tasks:
+
+    - name: Ensure required packages are installed
+      yum:
+        name:
+          - postgresql-server
+          - postgresql-contrib
+        state: present
+
+    - name: Initialize PostgreSQL database
+      command: "/usr/bin/postgresql-setup --initdb"
+      args:
+        creates: /var/lib/pgsql/data/PG_VERSION
+
+    - name: Start and enable PostgreSQL service
+      service:
+        name: postgresql
+        state: started
+        enabled: true
+
+ 
+ fatal: [localhost]: FAILED! => {"changed": false, "msg": "unable to connect to database: FATAL:  Peer authentication failed for user \"postgres\"\n"}
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+                                                                                       
+ 
+ ---
+- name: Postgresql  setup on CentOS
+  hosts: localhost
+  vars_files:
+    - vault.yml
+  become: yes
+  vars:
+    postgresql_root_password: RootPass123!
+    db_name: testdb
+    db_user: dbuser
+    db_user_password: UserPass123!
+  tasks:
+    - name: Install postgreqlDB server
+      yum:
+        name: postgresql-server
+        state: present
+    - name: Start and enable postgreql service
+      service:
+        name: postgresql
+        state: started
+        enabled: true
+    - name: Set postgreSQL root password
+      postgresql_user:
+        name: root
+        host_all: yes
+        password: "{{ postgresql_root_password }}"
+        login_unix_socket: /var/lib/mysql/mysql.sock
+      ignore_errors: true
+    - name: Create a Postgresql database
+      postgresql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: root
+        login_password: "{{ postgresql_root_password }}"
+    - name: Create a MySQL user with privileges
+      postgresql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_user_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        host: "%"
+        state: present
+        login_user: root
+        login_password: "{{ postgresql_root_password }}"
+
+ 
+ -----
+# Example: Display the inventory in JSON format
+ansible-inventory --list --inventory inventory.ini
+ 
+# Example: Validate the inventory
+ansible-inventory --inventory inventory.ini --graph
+ 
+The ansible-doc command is used to view documentation for modules, plugins, etc.
+ 
+# Example: View documentation for the `apt` module
+ansible-doc apt
+# Example: List all available modules
+ansible-doc -l
+ 
+ ansible-config
+The ansible-config command is used to view or validate Ansible configuration files.
+
+ 
+# Example: Display the active Ansible configuration
+ansible-config dump --only-changed
+ 
+ansible-console
+The ansible-console command launches an interactive shell for running Ansible tasks.
+
+# Example: Start an Ansible console session
+ansible-console -i inventory.ini --extra-vars "@vault.yml" --ask-vault-pass
+# Inside the console, you can run tasks interactively:# > ping
+uptime
+
+exit
+ 
+  
+ansible remotes -i inventory.ini -m yum -a "name=httpd state=present" -b --extra-vars "@vault.yml" --ask-vault-pass
+ 
+ 
+ansible remotes -i inventory.ini -m yum -a "name=httpd state=present" -b --extra-vars "@vault.yml" --ask-vault-pass
+ansible all -m ping -i inventory.ini --extra-vars "@vault.yml" --ask-vault-pass
+ 
+ansible all -i inventory.ini -m yum -a "name=mariadb-server state=present" --extra-vars "@vault.yaml"  --ask-vault-pass
+ansible all -i inventory.ini -m service -a "name=mariadb state=started enabled=yes" --extra-vars "@vault.yaml"  --ask-vault-pass
+ansible all -i inventory.ini -a "iptables -F" --extra-vars "@vault.yaml"  --ask-vault-pass
+ansible all -i inventory.ini -a "iptables -A INPUT -s 192.168.60.0/24 -p tcp -m tcp --dport 3306 -j ACCEPT" --extra-vars "@vault.yaml"  --ask-vault-pass
+ 
+ 
+ansible remotes -i inventory.ini -a "service ntpd status" --extra-vars "@vault.yaml"  --ask-vault-pass
+ 
+Assignment: Try copy command and fetch
+ansible multi -m copy -a "src=/etc/hosts dest=/tmp/hosts"
+
+LAb: Setting up website
+
+ Here’s a complete lab setup for deploying and validating a website using Dockerized NGINX on CentOS via Ansible. This includes:
+3. Create index.html Content
+mkdir files 
+files/index.html:
+
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Hello from Ansible</h1>
+  </body>
+</html>
+
+
+
+ 5. Main Playbook: deploy_website.yaml
+
+- name: Deploy and validate a website using Docker NGINX
+  hosts: remotes
+  become: yes
+  vars_files:
+    - vault.yaml
+  vars:
+    website_path: /opt/website
+    site_url: http://localhost:81
+    test_file_path: /tmp/test-index.html
+    expected_text: "Hello from Ansible"
+  tasks:
+    - name: Create website directory
+      file:
+        path: "{{ website_path }}"
+        state: directory
+        mode: '0755'
+    - name: Copy website files to remote host
+      copy:
+        src: files/index.html
+        dest: "{{ website_path }}/index.html"
+    - name: Run NGINX container with mounted website directory
+      community.docker.docker_container:
+        name: nginx-site
+        image: nginx
+        state: started
+        restart_policy: always
+        ports:
+          - "81:80"
+        volumes:
+          - "{{ website_path }}:/usr/share/nginx/html:ro"
+    - name: Wait for NGINX to be available on port 81
+      wait_for:
+        port: 81
+        timeout: 30
+    - name: Fetch the index page
+      get_url:
+        url: "{{ site_url }}"
+        dest: "{{ test_file_path }}"
+        force: yes
+    - name: Display success message
+      debug:
+        msg: "Website deployed and validated successfully!"
+
+
+ 6. Install Required Collections
+
+ansible-galaxy collection install community.docker
+
+
+ 7. Run the Playbook
+
+ansible-playbook -i inventory.ini deploy_website.yaml --ask-vault-pass
+
+
+---------------------------
+Date: 16/05
+ 
+ Steps to Add HTTPS Support Using TLS Certificates
+ 
+1. Generate Self-Signed TLS Certificates
+   Generate a self-signed certificate for testing purposes, or use a certificate from a trusted Certificate Authority (CA) for production.
+
+ 
+   mkdir -p files/certs
+   openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+     -keyout files/certs/nginx.key \
+     -out files/certs/nginx.crt \
+     -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=localhost
+
+ 
+2. Update the NGINX Configuration
+   Create a custom NGINX configuration file that includes HTTPS settings.
+ 
+   Example configuration (`files/nginx.conf`):
+   
+
+   server {
+       listen 443 ssl;
+       server_name localhost;
+ 
+       ssl_certificate /etc/nginx/certs/nginx.crt;
+       ssl_certificate_key /etc/nginx/certs/nginx.key;
+ 
+       location / {
+           root /usr/share/nginx/html;
+           index index.html;
+       }
+   }
+   
+
+ 
+3. Update Your Ansible Playbook
+   Modify your playbook to:
+   - Copy the TLS certificates and custom NGINX configuration to the container.
+   - Run the NGINX container with HTTPS support.
+ 
+   Here's the updated playbook:
+   yaml name=deploy_website_tls.yaml
+
+   - name: Deploy and validate a website using Docker NGINX with HTTPS
+     hosts: remotes
+     become: yes
+     vars_files:
+       - vault.yaml
+     vars:
+       website_path: /opt/website
+       site_url: https://localhost
+       test_file_path: /tmp/test-index.html
+       expected_text: "Hello from Ansible"
+     tasks:
+       - name: Create website directory
+         file:
+           path: "{{ website_path }}"
+           state: directory
+           mode: '0755'
+ 
+       - name: Copy website files to remote host
+         copy:
+           src: files/index.html
+           dest: "{{ website_path }}/index.html"
+ 
+       - name: Copy TLS certificates to remote host
+         copy:
+           src: files/certs/
+           dest: "{{ website_path }}/certs/"
+           mode: '0600'
+ 
+       - name: Copy custom NGINX configuration to remote host
+         copy:
+           src: files/nginx.conf
+           dest: "{{ website_path }}/nginx.conf"
+ 
+       - name: Run NGINX container with mounted website directory and TLS
+         community.docker.docker_container:
+           name: nginx-site
+           image: nginx
+           state: started
+           restart_policy: always
+           ports:
+             - "443:443"
+           volumes:
+             - "{{ website_path }}:/usr/share/nginx/html:ro"
+             - "{{ website_path }}/certs:/etc/nginx/certs:ro"
+             - "{{ website_path }}/nginx.conf:/etc/nginx/conf.d/default.conf:ro"
+       - name: Display success message
+         debug:
+           msg: "Website with HTTPS deployed and validated successfully!"
+
+   
+ 
+4. Install Required Collections
+   Ensure the `community.docker` collection is installed:
+   ansible-galaxy collection install community.docker
+   
+ 
+5. Run the Playbook
+   Execute the playbook using:
+   bash
+   ansible-playbook -i inventory.ini deploy_website_tls.yaml --ask-vault-pass
+   
+ 
+--------------
+create 
+Jinja2 template: https://github.com/Oefenweb/ansible-sudoers/blob/master/templates/etc/sudoers.j2
+
+
+mkdir templates
+
+Create file sudoers.j2
+
+{{ user }}    {{ hosts | default('ALL') }}=({{ runas | default('ALL') }}) {{ nopasswd | default('') }}: {{ commands | join(', ') }}
+
+ - name: Configure sudoers for a user
+   hosts: remotes
+   become: true
+   vars_files:
+     - vault.yaml
+   tasks:
+   - name: j2
+     template:
+       src: sudoers.j2
+       dest: /etc/sudoers
+     vars:
+       user: "student"
+       hosts: "ALL"
+       runas: "ALL"
+       nopasswd: "NOPASSWD"   # or leave empty for password prompt
+       commands:
+         - "ALL"
+~                                                                                                                                                             
+~                           
+LAb for collection
+ 
+1. Set Up Ansible Collection:
+   Create a directory structure for your collection.
+
+   ansible-galaxy collection init my_namespace.centos_hardening
+   cd my_namespace/centos_hardening
+   
+
+   
+ 
+3. Create a Role for Hardening:
+   Example: `roles/hardening/tasks/main.yml`
+ 
+   yaml name=roles/hardening/tasks/main.yml
+
+   ---
+   # Disable unused services
+   - name: Ensure unnecessary services are stopped and disabled
+     service:
+       name: "{{ item }}"
+       state: stopped
+       enabled: no
+     with_items:
+       - docker
+       - httpd
+   # Install necessary packages
+   - name: Install required packages
+     yum:
+       name:
+         - wget
+         - vim
+         - epel-release
+       state: present
+ 
+   # Configure SSH
+   - name: Harden SSH configuration
+     lineinfile:
+       path: /etc/ssh/sshd_config
+       regexp: "{{ item.regexp }}"
+       line: "{{ item.line }}"
+       state: present
+     with_items:
+       - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+       - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+       - { regexp: '^#?Protocol', line: 'Protocol 2' }
+     notify: Restart SSHD
+ 
+   # Set file permissions
+   - name: Set correct permissions on /etc/passwd
+     file:
+       path: /etc/passwd
+       owner: root
+       group: root
+       mode: '0644'
+ 
+   - name: Set correct permissions on /etc/shadow
+     file:
+       path: /etc/shadow
+       owner: root
+       group: root
+       mode: '0000'
+ 
+   # Configure firewall
+   - name: Ensure firewalld is running and enabled
+     service:
+       name: firewalld
+       state: started
+       enabled: yes
+   
+ 
+4. Set Default Variables:
+   Example: `roles/hardening/defaults/main.yml`
+ 
+   yaml name=roles/hardening/defaults/main.yml
+   ---
+   sshd_config_file: /etc/ssh/sshd_config
+   
+ 
+5. Create Handlers:
+   Example: `roles/hardening/handlers/main.yml`
+ 
+   yaml name=roles/hardening/handlers/main.yml
+   ---
+   - name: Restart SSHD
+     service:
+       name: sshd
+       state: restarted
+
+   
+ 
+----
+
+#!/usr/bin/python3
+import socket
+print(f"Hostname is {socket.gethostname()}")
+
+Make it executable:
+
+chmod +x get_hostname.py
+
+
+4. File: playbook.yaml
+
+---
+- name: Ansible facts and hostname demo
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Show OS distribution
+      debug:
+        msg: "Distribution is {{ ansible_facts['distribution'] }}"
+    - name: Show IP address of default interface
+      debug:
+        msg: "Default IPv4 address is {{ ansible_facts['default_ipv4']['address'] }}"
+    - name: Print hostname using shell command
+      command: hostname
+      register: hostname_result
+    - name: Show hostname from shell command
+      debug:
+        msg: "Hostname (shell) is {{ hostname_result.stdout }}"
+    - name: Print hostname using external Python script
+      script: get_hostname.py
+
+
+5. Run the playbook
+ansible-playbook -i inventory playbook.yaml
+     
