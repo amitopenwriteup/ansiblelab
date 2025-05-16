@@ -1,0 +1,26 @@
+[my_hosts]
+192.168.111.131 ansible_user=amit ansible_password=your_password_here
+
+[local]
+localhost ansible_connection=local
+
+ Place your public key (~/.ssh/id_rsa.pub) on the remote server (e.g., in /home/amit/.ssh/authorized_keys).
+
+[my_hosts]
+192.168.111.131 ansible_user=amit ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+[local]
+localhost ansible_connection=local
+
+----------------------
+
+[webservers]
+192.168.111.131
+
+[dbservers]
+192.168.111.130
+
+[all:vars]
+ansible_user=amit
+ansible_ssh_private_key_file=/path/to/key
+

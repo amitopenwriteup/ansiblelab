@@ -1,0 +1,40 @@
+#publish role to ansible-galaxy
+
+In lab4 we have created the role test, please push to git hub
+1) Create a new repo on GitHub
+2) Add,commit and push
+3) go to galaxy home page, collection-->api-token
+4) ansible-galaxy import <GitHub user name> <repo name on github> --token <token id>
+example
+
+ansible-galaxy import amitopenwriteup myansiblerole --token 208fb92ea9dfe552476822dd01a8dd1b02ea13e7
+
+
+output
+
+===== CLONING REPO =====
+cloning https://github.com/amitopenwriteup/myansiblerole ...
+
+===== GIT ATTRIBUTES =====
+github_reference(branch): main
+github_commit: a09320ab54ec444963bd6ab9f9243f8966908
+github_commit_message: adding role
+github_commit_date: 2024-11-07T13:58:07+00:00
+
+===== LOADING ROLE =====
+Importing with galaxy-importer 0.4.20
+Determined role name to be myansiblerole
+Linting role myansiblerole via ansible-lint...
+myansiblerole/tests/test.yml:5:7: syntax-check[specific]: the role 'test' was not found in /tmp/tmp2gub527c/myansiblerole/tests/roles:/app/.cache/ansible-compat/bcd9b5/roles:/app/.ansible/roles:/usr/share/ansible/roles:/etc/ansible/roles:/tmp/tmp2gub527c/myansiblerole/tests
+...ansible-lint run complete
+Legacy role loading complete
+
+===== PROCESSING LOADER RESULTS ====
+enumerated role name myansiblerole
+created new role id:39534 amitopenwriteup.myansiblerole
+
+===== COMPUTING ROLE VERSIONS ====
+
+==== SAVING ROLE ====
+
+Import completed

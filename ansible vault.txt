@@ -1,0 +1,17 @@
+# Run below command, it will prompt for password, provide and it will open an file
+
+ansible-vault create vault.yml
+
+# In above open yml file, provide your remote machine password
+
+ansible_user_password: "YourSecurePassword"
+
+#Open inventory file (with .ini extension), provide machine ip addresss
+
+[myhosts]
+192.168.111.130  ansible_connection=ssh ansible_user=amit ansible_user_pass="{{ ansible_user_password }}"
+
+#Run ansible-playbook command
+
+ansible myhosts -i inventory.ini -m ping --ask-vault-pass
+

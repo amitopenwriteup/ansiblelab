@@ -1,0 +1,23 @@
+lab 5
+1) login using GitHub
+
+https://galaxy.ansible.com/ui/
+
+2) Roles-->check for docker
+
+ansible-galaxy role install bsmeding.docker
+
+Starting galaxy role install process
+- downloading role 'docker', owned by bsmeding
+- downloading role from https://github.com/bsmeding/ansible_role_docker/archive/1.0.12.tar.gz
+- extracting bsmeding.docker to /root/.ansible/roles/bsmeding.docker
+- bsmeding.docker (1.0.12) was installed successfully
+3) write playbook lab5.yaml
+---
+- hosts: all
+  become: true
+  roles:
+   - bsmeding.docker
+
+4)  ansible-playbook -i inventory.ini lab5.yaml
+

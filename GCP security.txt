@@ -1,0 +1,74 @@
+Module 1: Introduction to GCP Infrastructure and Security
+	Regions & Zones
+	How Google Secures GCP Infrastructure
+	Shared Responsibility Model
+Labs:
+[Lab] Create GCP Free Tier Account with Cloud Identity
+[Lab] Create GCP Free Tier Account with Google Account
+	Notes about GCP Account
+	Explore Google Admin Console
+[Lab] Adding Users
+	Password Policy and Enforce 2-Step Verification
+	Google Cloud Directory Sync
+	SAML - SSO Configuration
+Module 2: Resource Hierarchy and Identity Management
+	Resource Hierarchy in GCP (Org, Folder, and Projects)
+[Lab] Create Folders & Projects in GCP
+[Lab] Organization Policy - I
+	Identity & Access Management (Identity, Roles & Permissions)
+	Primitive Roles
+	Pre-Defined Roles
+[Lab] Assign Pre-Defined Roles to Users
+[Lab] Define Custom Role & Assignment Part - I
+[Lab] Assign Role at Organization & Folder Levels
+	IAM - Privileged Access Manager (PAM) Introduction
+[Lab] Privileged Access Manager Part - 1
+Module 3: Networking in GCP
+	CIDR Notation
+	Virtual Private Network & Subnets
+[Lab] Explore Default VPC
+[Lab] Create Auto Mode VPC
+[Lab] Create Custom Mode VPC
+[Lab] Create Virtual Machine with All Subnets
+	Firewall Rules
+[Lab] Create Firewall Rule - SSH
+	Internal vs External IP Address
+[Lab] Internal vs External IP Address
+[Lab] Static vs Ephemeral IP Address
+	Shared VPC Concepts
+[Lab] Deploy Shared VPC
+	Introduction to VPC Peering
+[Lab] VPC Peering
+GCP Hybrid Connectivity Options
+Dedicated Interconnect vs Partner Interconnect
+	Module 4: Identity-Aware Proxy (IAP)
+	IAP - Identity Aware Proxy Part - I
+[Lab] Identity Aware Proxy Part - II
+
+Module 5: Cloud Armor
+	Introduction to Cloud Armor
+[Lab] Cloud Armor Demo - Steps
+[Lab] Cloud Armor Demo Part - 1
+[Lab] Cloud Armor Demo Part - 2
+Delete All Resources - Cloud Armor
+	Module 6: Data Loss Prevention (DLP) API
+	Introduction to DLP API
+[Lab] DLP API Demo
+	Templates, INFO_TYPES & Match
+[Lab] Create Stored INFO_TYPE
+[Lab] Create Template
+[Lab] Create Job for Inspection
+[Lab] Template for De-Identification
+	Module 7: Backup and Disaster Recovery
+	RPO & RTO
+[Lab] Backup Data Part - I
+[Lab] Database Backup
+	Module 8: GCP Security Tools
+[Lab] Web Security Scanner
+[Lab] Security Command Center
+	Cloud Logging
+[Lab] Explore Cloud Logging
+[Lab] Cloud Log Sinks
+[Lab] Container Scanning API
+
+Note: Cli option will also explored for all the above labs

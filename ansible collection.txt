@@ -1,0 +1,7 @@
+#Create ansible collection
+ansible-galaxy collection init test.test
+#change directory
+cd test/test
+#Run build command
+ansible-galaxy collection build
+

@@ -1,0 +1,26 @@
+lab1 
+
+We have two machines: host1 and host2. Let’s try to connect from host1 to host2 using ssh:
+
+example
+
+host1 (control node):  192.168.111.130
+host2 (manage node): 192.168.111.131
+
+1) On manage node generate the public private key pair for the user
+
+ssh-keygen -t rsa 
+
+2) Now from the host1, it will promopt for username and password
+
+ssh-copy-id amit@192.168.111.131
+
+#test using ping module
+
+create a folder
+
+1) mkdir labs
+2) create inventory file (inventory.ini)
+[my_hosts]
+192.168.111.131 ansible_user=amit ansible_connection=ssh
+3) ansible -i inventory.ini all -m ping

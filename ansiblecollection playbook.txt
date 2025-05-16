@@ -1,0 +1,133 @@
+
+---
+
+Topics to Cover
+
+1. Introduction to Configuration Management
+- What is Configuration Management?
+- Common problems in server configuration management.
+- Solutions for server configuration challenges.
+
+2. Introduction to Ansible
+- What is Ansible?
+- Benefits of using Ansible.
+
+3. Version control
+ git basics (add,commit,push)
+GitHub
+git branch
+---
+
+Understanding Ansible
+
+1. Ansible Architecture
+- Key components of Ansible.
+- How Ansible operates in an agentless and lightweight manner.
+
+2. How Ansible Works
+- Workflow of executing tasks using Ansible.
+- Communication between the control node and managed nodes.
+
+3. Ansible Terminology
+- Overview of essential terms like playbooks, tasks, modules, inventories, roles, and more.
+
+---
+
+
+1. Introduction to YAML
+- Basics of YAML syntax and its role in Ansible.
+
+2. Setting Up the Ansible Development Environment
+- Installing and configuring Ansible.
+
+3. Ansible Command Line Basics
+- Overview of key Ansible commands and their usage.
+
+---
+
+Authentication and Authorization in Ansible
+
+1. SSH Authentication Methods
+- Using SSH with a password.
+- Using SSH with a key pair.
+- Authenticating with another user and password/key.
+- Setting up SSH without requiring a password or key.
+
+---
+
+Ansible Ad-Hoc Commands
+
+1. Running Ad-Hoc Commands
+- Executing tasks on:
+  - A single local machine.
+  - A single remote machine.
+  - Multiple remote machines using:
+    - An inventory file.
+    - Groups in the inventory.
+
+---
+
+Creating and Managing Ansible Inventory
+
+1. Writing an Inventory
+- Defining an inventory file.
+- Creating inventory groups and group hierarchies.
+- Configuring inventory behaviors.
+
+---
+
+Writing and Running Ansible Playbooks
+
+1. Crafting Playbooks
+- Writing plays using modules.
+- Structuring and running playbooks on:
+  - Local servers.
+  - Remote servers.
+
+2. Working with Variables
+- Using variables in:
+  - Playbooks.
+  - External files.
+  - Task-level includes.
+  - Inventory files and `hostvars`.
+- Techniques for variable registration and prompting.
+- Passing variables via the command line.
+
+---
+
+Popular Ansible Modules
+
+1. Commonly Used Modules
+- Overview and use cases for modules like:
+  - Setup: Gather facts about managed nodes.
+  - Command: Run arbitrary commands.
+  - Expect: Interact with prompts.
+  - Raw: Execute raw commands over SSH.
+  - Script: Run scripts on managed nodes.
+  - Shell: Execute shell commands.
+  - File: Manage files and directories.
+  - SELinux/SEBoolean: Configure SELinux settings.
+  - Copy: Copy files to managed nodes.
+  - Cron: Schedule cron jobs.
+  - Include: Reuse tasks across playbooks.
+  - Mount: Manage mount points.
+  - User/Group: Manage users and groups.
+  - Mail: Send emails.
+  - Git: Manage source code repositories.
+  - Apt/Yum: Manage package installations.
+
+---
+Ansible roles
+-  Create role
+-  Publish role
+- Create  playbook using role
+- Use existing roles
+
+---
+Ansible vault
+- How to use?
+- Why?
+- Integrate vault
+---
+Tower overview.
+Ansible collection

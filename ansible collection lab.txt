@@ -1,0 +1,3 @@
+ansible collection
+
+https://goetzrieger.github.io/ansible-collections/5-creating-collections/

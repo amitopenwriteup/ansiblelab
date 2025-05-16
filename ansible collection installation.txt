@@ -1,0 +1,23 @@
+#Create a directory
+
+mkdir collectiontest
+
+
+#Install collection 
+
+ansible-galaxy collection install community.kubernetes -p collectiontest/
+
+
+
+#Go to this location
+cd collectiontest/ansible_collections
+
+#Create ansible.cfg file
+
+[defaults]
+COLLECTIONS_PATH=./collectiontest
+
+
+#Verfiy collection are installed or not
+
+ansible-galaxy collection list
