@@ -11,7 +11,7 @@ create a yaml file(lab3.yaml)
   tasks:
     - name: Install apache httpd
       ansible.builtin.apt:
-        name: apache2
+        name: nginx
         state: present
         update_cache: yes
     - name: Copy file with owner and permissions
