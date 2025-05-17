@@ -24,6 +24,17 @@ create a yaml file(lab3.yaml)
 
 
 touch index.html
+vi to index.html, and copy/paste below code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome</title>
+</head>
+<body>
+    <h1>Welcome to Nginx</h1>
+</body>
+</html>
+
 
 ansible-playbook -i inventory.ini lab3.yaml
 
