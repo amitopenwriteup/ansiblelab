@@ -7,11 +7,11 @@ example
 host1 (control node):  192.168.111.130
 host2 (manage node): 192.168.111.131
 
-1) On manage node generate the public private key pair for the user
+1) On contorl node generate the public private key pair for the user
 
 ssh-keygen -t rsa 
 
-2) Now from the host1, it will promopt for username and password
+2) Now from the control node, provide your aws/azure vm ip and username, it will promopt for username and password
 
 ssh-copy-id amit@192.168.111.131
 
