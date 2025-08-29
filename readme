@@ -1,0 +1,124 @@
+
+
+# 🛠️ Ansible Automation Labs
+
+This repository contains **hands-on labs, playbooks, and notes** for learning and practicing **Ansible automation**. It covers everything from basic commands to advanced concepts like **roles, vaults, collections, and integrations** with Docker, Databases, and Web servers.
+
+---
+
+## 📂 Repository Structure
+
+```
+.
+├── inventory/
+│   ├── dev/                  # Sample inventory structure
+│   ├── inventory.ini         # INI-based inventory
+│   └── inventory.yaml        # YAML-based inventory
+│
+├── files/                    # Supporting files
+├── lab1.yaml - lab9.yaml     # Lab playbooks
+├── db_create.yml             # Database setup automation
+├── dockerhealth.yaml         # Docker container health check
+├── mysql.yaml / postgres.yaml # DB role examples
+├── nodemonitor.yaml          # Node monitoring playbook
+├── website.yaml              # Deploy a sample website
+├── vault.yaml                # Encrypted secrets (Ansible Vault)
+├── cleanup.yaml              # Cleanup tasks
+├── osfamily.yaml             # OS family-based task execution
+├── roletest.yaml             # Role testing playbook
+├── packagetest.yaml          # Package installation validation
+│
+├── ansiblenotes/             # Notes on Ansible concepts
+├── *.pptx / *.docx / *.txt   # Lab instructions & theory
+└── index.html                # Sample website for deployment
+```
+
+---
+
+## 🚀 Features Covered
+
+* ✅ **Basic Playbooks & Modules** – file, package, service, copy, template, lineinfile, etc.
+* ✅ **Inventory Management** – INI & YAML inventories with groups/hosts
+* ✅ **Roles & Collections** – structured roles, reusable playbooks
+* ✅ **Conditionals & Loops** – `when`, `loop`, `with_items`
+* ✅ **Handlers & Tags** – efficient orchestration of tasks
+* ✅ **Ansible Vault** – managing sensitive variables
+* ✅ **Docker Automation** – container setup & health checks
+* ✅ **Database Automation** – MySQL, PostgreSQL provisioning
+* ✅ **Website Deployment** – simple site via Ansible playbook
+* ✅ **Ansible Tower/AWX Concepts** – included in docs
+
+---
+
+## 🔧 Prerequisites
+
+* **Python 3.x**
+* **Ansible ≥ 2.13**
+* SSH access to managed nodes
+* Docker installed (for Docker-related labs)
+
+---
+
+## ⚙️ Usage
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/amitopenwriteup/ansible-labs.git
+cd ansible-labs
+```
+
+### 2. Run a sample playbook
+
+```bash
+ansible-playbook -i inventory.ini lab1.yaml
+```
+
+### 3. With YAML inventory
+
+```bash
+ansible-playbook -i inventory.yaml lab2.yaml
+```
+
+### 4. Using tags
+
+```bash
+ansible-playbook -i inventory.ini lab3.yaml --tags "setup"
+```
+
+### 5. Vault-encrypted variables
+
+```bash
+ansible-vault encrypt vault.yaml
+ansible-playbook -i inventory.yaml secure_playbook.yaml --ask-vault-pass
+```
+
+---
+
+## 📘 Learning Path
+
+The labs are structured in increasing complexity:
+
+1. **Lab 1-3** → Basic modules & tasks
+2. **Lab 4-6** → Roles, conditionals, handlers
+3. **Lab 7-9** → Vault, Docker, DB automation
+4. **Final Assessment** → Combined automation scenario (Excel-based checklist included)
+
+---
+
+## 📄 References
+
+* [Ansible Docs](https://docs.ansible.com/)
+* [Ansible Galaxy](https://galaxy.ansible.com/)
+* [Ansible Tower/AWX](https://www.ansible.com/products/awx-project)
+
+---
+
+## 📦 Notes
+
+The included **PPTs, DOCXs, and TXT files** provide step-by-step instructions and theory notes for each lab (useful for training & self-study).
+
+---
+
+✨ This repo is ideal for **DevOps beginners, sysadmins, and learners preparing for automation projects or interviews**.
+
